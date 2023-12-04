@@ -292,3 +292,50 @@ urlpatterns = [
 Now you can run the server, and will see the data much better thanks to Django Rest Framework:
 
 ![image](https://github.com/vanesascode/fils/assets/131259155/f9bf4e5b-b794-4e1e-887a-6897dbdde7d9)
+
+### 🔹 Add POST view function & create method in the serializer class
+
+```
+@api_view(['GET', 'POST']) #GET is the default method, so you can leave it empty
+def states_list(request):
+  if request.method == 'GET':
+    states = State.objects.all()
+    serializer = StateSerializer(states, many=True)
+    return Response(serializer.data)
+
+  if request.method == 'POST':
+    de_serializer = StateSerializer(data=request.data)
+    if de_serializer.is_valid():
+      de_serializer.save()
+      return Response(de_serializer.data)
+    else:
+      return Response(de_serializer.errors)
+```
+
+The `de_serializer` instance is responsible for deserializing the data received in the request (request.data). Deserialization is the process of converting the raw data into a Python object that can be easily manipulated and validated.
+
+`is_valid()` is a method provided by the Django REST Framework's serializer
+
+```
+from rest_framework import serializers
+from stateslist_app.models import State
+
+class StateSerializer(serializers.Serializer):
+  id = serializers.IntegerField(read_only=True)
+  address = serializers.CharField()
+  city = serializers.CharField()
+  description = serializers.CharField()
+  image = serializers.CharField()
+  active = serializers.BooleanField()
+
+  def create(self, validated_data):
+    return State.objects.create(**validated_data)
+```
+
+The `self` parameter allows you to access the instance variables and other instance methods within the class.
+
+The double asterisks `**` is used to unpack a dictionary into keyword arguments when calling a function or method. In this case, it allows passing the values from the validated_data dictionary as individual keyword arguments to the create method.
+
+Now you can post a new instace to the table State:
+
+![image](https://github.com/vanesascode/fils/assets/131259155/4ac14a07-0862-43f1-b5eb-37d4f652596d)
