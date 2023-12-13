@@ -1,4 +1,4 @@
-# Django, Postgres, and Angular | Fullstack Integration Course
+# Django, Django Rest Framework & postgres course
 
 ## 🌟 VIRTUAL ENVIRONMENT:
 
