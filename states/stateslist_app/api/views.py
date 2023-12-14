@@ -20,7 +20,7 @@ class StateListApiView(APIView):
       de_serializer.save()
       return Response(de_serializer.data)
     else:
-      return Response(de_serializer.errors, state=status.HTTP_400_BAD_REQUEST)
+      return Response(de_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class StateDetailApiView(APIView):
   def get(self, request, pk):

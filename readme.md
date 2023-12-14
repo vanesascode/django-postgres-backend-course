@@ -1,5 +1,11 @@
 # Django, Django Rest Framework & postgres course
 
+Note on installation:
+
+It's recommended to use only one package manager (`pip or pip3`) consistently within a project, depending on the specific Python version you are targeting.
+
+If you are working on a Python 2 project, use pip to install packages. If you are working on a Python 3 project, use pip3 to install packages. This way, you ensure that the correct packages are installed for the intended Python version.
+
 ## 🌟 VIRTUAL ENVIRONMENT:
 
 Create environment:
@@ -339,3 +345,83 @@ The double asterisks `**` is used to unpack a dictionary into keyword arguments 
 Now you can post a new instace to the table State:
 
 ![image](https://github.com/vanesascode/fils/assets/131259155/4ac14a07-0862-43f1-b5eb-37d4f652596d)
+
+### 🔹 From a functions model to a class model: CLASS APIVIEW
+
+Django's APIView class is a `base class` that provides a convenient way to `create API views`. It is designed to be used with Django's built-in rest_framework module for building RESTful APIs.
+
+```
+from rest_framework.views import APIView
+from rest_framework.response import Response
+
+class MyAPIView(APIView):
+    def get(self, request):
+        # Handle GET request logic here
+        return Response("GET request processed")
+
+    def post(self, request):
+        # Handle POST request logic here
+        return Response("POST request processed")
+```
+
+The APIView class also provides some built-in functionalities such as request parsing, response formatting, authentication, permission handling, and more. It allows you to easily `handle common API tasks without having to write repetitive code.`
+
+### 🔹 Entity Validations
+
+`Serializer Validation`: In Django Rest Framework, serializers provide a validate\_<fieldname>() method that can be used to perform field-specific validation when deserializing input data.
+
+We set them in the `serializers.py` file inside the app, and inside the api folder.
+
+First, you create a function that will have the condition:
+
+```
+def column_length(value):
+  if len(value) < 2:
+    raise serializers.ValidationError('Address is too short')
+```
+
+And then you apply it to the specific property you want:
+
+```
+address = serializers.CharField(validators=[column_length])
+```
+
+## 🌟 API Documentation - [drf-yasg](https://drf-yasg.readthedocs.io/en/stable/readme.html#usage)
+
+DRF-YASG is a Python library that integrates with Django REST Framework (DRF) to generate `OpenAPI (formerly known as Swagger) documentation for your RESTful APIs`. It provides a set of decorators and classes that allow you to annotate your DRF views and serializers with OpenAPI metadata, which is then used to generate interactive API documentation.
+
+DRF-YASG stands for `Django REST Framework Yet Another Swagger Generator`. It aims to simplify the process of documenting your APIs by automatically generating the OpenAPI schema and providing a user-friendly interface to `explore and test your API endpoints`.
+
+Apart from installing: `pip install drf-yasg`
+
+You also need to install `pip install setuptools`
+
+Now our urls file in the project states remains like this:
+
+```
+from django.contrib import admin
+from django.urls import path, include
+
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+
+schema_view = get_schema_view(
+   openapi.Info(
+      title="States",
+      default_version='v1',
+      description="Sates documentation",
+      terms_of_service="https://www.google.com/policies/terms/",
+      contact=openapi.Contact(email="vanesascode@gmail.com"),
+      license=openapi.License(name="BSD License"),
+   ),
+   public=True,
+)
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('states/', include('stateslist_app.api.urls')),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+]
+
+```

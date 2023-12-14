@@ -1,9 +1,13 @@
 from rest_framework import serializers
 from stateslist_app.models import State
 
+def column_length(value):
+  if len(value) < 2:
+    raise serializers.ValidationError('Address is too short')
+
 class StateSerializer(serializers.Serializer):
   id = serializers.IntegerField(read_only=True)
-  address = serializers.CharField()
+  address = serializers.CharField(validators=[column_length])
   city = serializers.CharField()
   description = serializers.CharField()
   image = serializers.CharField()
