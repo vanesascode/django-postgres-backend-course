@@ -386,6 +386,68 @@ And then you apply it to the specific property you want:
 address = serializers.CharField(validators=[column_length])
 ```
 
+### 🔹 Core Arguments
+
+In Django REST Framework, the "core arguments" in serializer fields are the arguments that are commonly used to `configure and customize the behavior of serializer fields`. Some of the core arguments include:
+
+- `read_only`: Specifies whether the field is read-only or not.
+
+- write_only: Specifies whether the field is write-only or not.
+
+- `required`: Specifies whether the field is required or not during deserialization.
+
+- allow_null: Specifies whether the field allows null values or not.
+
+- default: Specifies the default value for the field if no value is provided.
+
+- `validators`: Specifies a list of validators to apply to the field.
+
+- source: Specifies the name of the attribute or method on the model that the field should be serialized from or deserialized into.
+
+These core arguments are used to define the behavior of serializer fields and customize how data is serialized and deserialized.
+
+### 🔹 Inheriting from ModelSerializer VS inheriting from Serializer
+
+The main difference is that the first approach (ModelSerializer) automatically generates the serializer fields based on the model, while the second approach (Serializer) requires you to define each field manually.
+
+```
+class StateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = State
+    fields = '__all__'
+
+```
+
+This code snippet above defines a serializer class StateSerializer that inherits from ModelSerializer. It is used to serialize and deserialize instances of the State model. The Meta class inside StateSerializer specifies that the serializer should be based on the State model and include all fields (fields = '**all**').
+
+In Python, the `Meta class` is a way to define `metadata for a class`.
+
+In case you don't want all fields to be seen, you can say which ones you want, with either `fields` or `exclude`:
+
+```
+class StateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = State
+    # fields = '__all__'
+    # fields = ['id', 'address', 'description', 'active']
+    exclude = ['id']
+
+```
+
+Now see: 
+
+```
+class StateSerializer(serializers.Serializer):
+  id = serializers.IntegerField(read_only=True)
+  address = serializers.CharField(validators=[column_length])
+  city = serializers.CharField(validators=[column_length])
+  description = serializers.CharField()
+  image = serializers.CharField()
+  active = serializers.BooleanField()
+```
+
+This second code snippet defines a serializer class StateSerializer that inherits from Serializer. This type of serializer requires you to manually define each field and its validation rules.
+
 ## 🌟 API Documentation - [drf-yasg](https://drf-yasg.readthedocs.io/en/stable/readme.html#usage)
 
 DRF-YASG is a Python library that integrates with Django REST Framework (DRF) to generate `OpenAPI (formerly known as Swagger) documentation for your RESTful APIs`. It provides a set of decorators and classes that allow you to annotate your DRF views and serializers with OpenAPI metadata, which is then used to generate interactive API documentation.
@@ -425,3 +487,5 @@ urlpatterns = [
 ]
 
 ```
+
+##
