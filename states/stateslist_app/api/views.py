@@ -1,9 +1,60 @@
 from rest_framework.response import Response
 from stateslist_app.models import State
+from stateslist_app.models import Business
 from stateslist_app.api.serializers import StateSerializer
+from stateslist_app.api.serializers import BusinessSerializer
 # from rest_framework.decorators import api_view
 from rest_framework import status
 from rest_framework.views import APIView
+
+
+
+class BusinessListApiView(APIView):
+  def get(self, request):
+    businesses = Business.objects.all() # we get all objects
+    serializer = BusinessSerializer(businesses, many=True, context={'request': request}) 
+    return Response(serializer.data) # we return them as JSON data to the client
+
+  def post(self, request):
+    serializer = BusinessSerializer(data=request.data) # we deserialize the data
+    if serializer.is_valid():
+      serializer.save() # we save it
+      return Response(serializer.data) # we return a correct response to the client and what data
+    else:
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+  def put(self, request, pk):
+    try:
+      business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+      return Response({'Error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = BusinessSerializer(business, data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data)
+    else:
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class BusinessDetailApiView(APIView):
+  def get(self, request, pk):
+    try: # first find the object
+      business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+      return Response({'Error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    serializer = BusinessSerializer(business, context={'request': request})
+    return Response(serializer.data)     
+  
+  def delete(self, request, pk):
+    try: 
+      business = Business.objects.get(pk=pk)
+    except Business.DoesNotExist:
+      return Response({'Error': 'Business not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    business.delete()
+    return Response({'success': True}, status=status.HTTP_204_NO_CONTENT)
+  
 
 
 # OPTION WITH CLASS APIView - Model of classes:
@@ -15,12 +66,12 @@ class StateListApiView(APIView):
     return Response(serializer.data)
   
   def post(self, request):
-    de_serializer = StateSerializer(data=request.data)
-    if de_serializer.is_valid():
-      de_serializer.save()
-      return Response(de_serializer.data)
+    serializer = StateSerializer(data=request.data)
+    if serializer.is_valid():
+      serializer.save()
+      return Response(serializer.data)
     else:
-      return Response(de_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+      return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class StateDetailApiView(APIView):
   def get(self, request, pk):

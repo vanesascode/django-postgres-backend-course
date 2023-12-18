@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from stateslist_app.models import State
+from stateslist_app.models import Business
+
 
 class StateSerializer(serializers.ModelSerializer):
   
@@ -10,20 +12,40 @@ class StateSerializer(serializers.ModelSerializer):
     # fields = ['id', 'address', 'description', 'active']
     # exclude = ['id']
     
+    
   # 'Object' refers to a State model instance that is being serialized by the StateSerializer class.
   def get_length_address(self, object): # calculated field function
     return len(object.address)
+
+class BusinessSerializer(serializers.HyperlinkedModelSerializer):
+# class BusinessSerializer(serializers.ModelSerializer):
+  stateslist = StateSerializer(many=True, read_only=True)
+  # stateslist = serializers.StringRelatedField(many=True)
+  # stateslist = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+  # stateslist =  serializers.HyperlinkedRelatedField(
+  #   many=True, 
+  #   read_only=True, 
+  #   view_name='state-details' # this is the name we used in the path of the urlpatterns, to get one onlystate
+  #   )
+  class Meta:
+    model = Business
+    fields = '__all__'
     
-  def validate(self, data):
-    if data['address']==data['city']:
-      raise serializers.ValidationError('Address and city must be different')
-    else:
-      return data
+
+    
+    
+    
+    
+  # def validate(self, data):
+  #   if data['address']==data['city']:
+  #     raise serializers.ValidationError('Address and city must be different')
+  #   else:
+  #     return data
   
-  def validate_image(self, value):
-    if len(value) < 2:
-      raise serializers.ValidationError('URL of image is too short. It must be at leas 2 characters')
-    return value
+  # def validate_image(self, value):
+  #   if len(value) < 2:
+  #     raise serializers.ValidationError('URL of image is too short. It must be at leas 2 characters')
+  #   return value
 
 # Notice this validation must be outside the class:
 # def column_length(value):

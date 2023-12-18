@@ -1,13 +1,15 @@
 from django.urls import path
 # from stateslist_app.api.views import states_list, state_details
-from stateslist_app.api.views import StateListApiView, StateDetailApiView
+from stateslist_app.api.views import StateListApiView, StateDetailApiView, BusinessListApiView, BusinessDetailApiView
 
 
 # OPTION WITH CLASS APIView:
 
 urlpatterns = [
   path('list/', StateListApiView.as_view(), name='states-list'),
-  path('<int:pk>/', StateDetailApiView.as_view(), name='state-details'),
+  path('<int:pk>/', StateDetailApiView.as_view(), name='state-detail'),
+  path('business/', BusinessListApiView.as_view(), name='business-list'),
+  path('business/<int:pk>/', BusinessDetailApiView.as_view(), name='business-detail'), # For Django it is very important to put 'detail' and not 'details' 
 ]
 
 # OPTION WITH DECORATORS:

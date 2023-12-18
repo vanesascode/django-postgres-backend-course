@@ -434,7 +434,7 @@ class StateSerializer(serializers.ModelSerializer):
 
 ```
 
-Now see: 
+Now see:
 
 ```
 class StateSerializer(serializers.Serializer):
@@ -488,4 +488,188 @@ urlpatterns = [
 
 ```
 
-##
+`http://127.0.0.1:8000/swagger/`
+
+---
+
+# 🌟 SUMMARY SO FAR - To build a new API and update the database:
+
+### build a new API
+
+- Create the model (inside migrations folder)
+
+- Create the serializer class (inside the api folder)
+
+- Create the views classes (inside the api folder)
+
+- Add the path in the urls file (inside the api folder)
+
+- Add the model to the admin file so you can manage it in the admin interface (inside the app folder, example: `stateslist_app`)
+
+### update the database
+
+- Eliminate the current database file ( example: `db.sqlite3`)
+
+- Get inside the environment (in the root folder, example: `PS C:\Users\Vanesa\django-postgres-backend-course\`, run the command `menv\Scripts\activate`), and go to the level of the project folder (not the app folder, example: `(menv) PS C:\Users\Vanesa\django-postgres-backend-course\states>`)
+
+- There, run the command: `python manage.py makemigrations`
+
+- If you are asked (did you rename the xxxxxx model to xxxxxx ? ) If you say NO, then it will create from scratch, which is better. You may be asked other questions
+
+- Then, run the command `python manage.py migrate`
+
+- Then, we create the use again. Run `python manage.py createsuperuser` and fill in the filds (remember, you won't see the password, but it is being introduced!!!)
+
+- You can run the server: `python manage.py runserver`. And go to the admin panel: http://127.0.0.1:8000/admin
+
+👉 `makemigrations` is used to generate migration files based on your model changes, while `migrate` applies those migrations to update the database schema.
+
+---
+
+❗ If there are many errors and can't start sever: Delete all files in migrations folder (except for `__init__.py`) + run commands `rm db.sqlite3` + `python manage.py makemigrations` + `python manage.py migrate` - Remeber, you always must drop the database table too. And you'll have to create a super admin again: `python manage.py createsuperuser`.
+
+---
+
+## 🌟 Relations between models
+
+A relational database is a type of database that:
+
+- `organizes data into tables with rows and columns`. (In mongoDB we talk about collections and documents)
+
+- `It uses a structured query language (SQL)` to manage and manipulate the data. (MongoDB uses its own query language MQL)
+
+- `Tables are related to each other through common fields`, allowing for efficient data retrieval and manipulation. (In MongoDB, collections are not directly related to each other through common fields like tables in a relational database. Instead, MongoDB provides a feature called "references" or "embedded documents" to establish relationships between collections.)
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/d5ba6919-d125-40a9-8513-5ba879a7be98)
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/f66f9f44-a5c9-4829-a989-b64a392369e9)
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/9c408ce4-d3ed-47e5-b316-2486420a19cc)
+
+Example of one to many:
+
+```
+class Business(models.Model):
+  name = models.CharField(max_length=250)
+  website = models.URLField(max_length=250)
+  active = models.BooleanField(default=True)
+
+  def __str__(self):
+    return self.name
+
+class State(models.Model):
+  address = models.CharField(max_length=250)
+  city = models.CharField(max_length=100)
+  description = models.CharField(max_length=500)
+  image = models.CharField(max_length=900)
+  active = models.BooleanField(default=True)
+  created = models.DateTimeField(auto_now_add=True)
+  business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='stateslist')
+
+
+  def __str__(self):
+    return self.address
+
+```
+
+After any change you do to your models, remember: `python manage.py makemigrations` + `python manage.py migrate`
+
+For now, when we check our states list, we only see the id of the business that is related. And in the business list, I don't know what states each have. So:
+
+### 🔹 Nested results between models
+
+We can add the list of states in the business model:
+
+```
+class StateSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = State
+    fields = '__all__'
+
+class BusinessSerializer(serializers.ModelSerializer):
+  stateslist = StateSerializer(many=True, read_only=True)
+  class Meta:
+    model = Business
+    fields = '__all__'
+```
+
+(stateslist is the related_name in the state model)
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/6d528c5d-274e-4ea4-9c24-f5cb3634fd9c)
+
+But what if you don't want it to return the whole state object, only some fields:
+
+We can return only what is in the **str** funcion in the models.
+
+So in our business class:
+
+```
+class BusinessSerializer(serializers.ModelSerializer):
+  stateslist = serializers.StringRelatedField(many=True)
+  class Meta:
+    model = Business
+    fields = '__all__'
+```
+
+And in the State model:
+
+```
+class State(models.Model):
+  address = models.CharField(max_length=250)
+  city = models.CharField(max_length=100)
+  description = models.CharField(max_length=500)
+  image = models.CharField(max_length=900)
+  active = models.BooleanField(default=True)
+  created = models.DateTimeField(auto_now_add=True)
+  business = models.ForeignKey(Business, on_delete=models.CASCADE, related_name='stateslist')
+
+  def __str__(self):
+    return self.address
+```
+
+So, only we'll get the address.
+
+A especific way of only returning the ids:
+
+```
+stateslist = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+```
+
+We can also return the URL where you find the state object in the admin interface:
+
+```
+ stateslist =  serializers.HyperlinkedRelatedField(
+    many=True,
+    read_only=True,
+    view_name='state-details' # this is the name we used in the path of the urlpatterns, to get one onlystate
+    )
+```
+
+Also, we need to add the request to the view class, in the get method:
+
+```
+class BusinessListApiView(APIView):
+  def get(self, request):
+    businesses = Business.objects.all()
+    serializer = BusinessSerializer(businesses, many=True, context={'request': request})
+    return Response(serializer.data)
+```
+
+And you have it:
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/006ece6d-5f4d-47fc-a277-56685eb8df28)
+
+### 🔹 Instead of Primary Key, use a Unique URL
+
+Using HyperlinkedModelSerializer:
+
+```
+class BusinessSerializer(serializers.HyperlinkedModelSerializer):
+  stateslist = StateSerializer(many=True, read_only=True)
+
+  class Meta:
+    model = Business
+    fields = '__all__'
+```
+
+![image](https://github.com/vanesascode/django-postgres-backend-course/assets/131259155/fba179a7-b906-4593-9414-8c654690d017)
