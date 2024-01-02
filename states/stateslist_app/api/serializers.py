@@ -1,10 +1,15 @@
 from rest_framework import serializers
 from stateslist_app.models import State
 from stateslist_app.models import Business
+from stateslist_app.models import Comment
 
-
+class CommentSerializer(serializers.ModelSerializer):
+  class Meta:
+    model = Comment
+    fields = '__all__'
+    
 class StateSerializer(serializers.ModelSerializer):
-  
+  comments = CommentSerializer(many=True, read_only=True)
   length_address = serializers.SerializerMethodField() # calculated field
   class Meta:
     model = State

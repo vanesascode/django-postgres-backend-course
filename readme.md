@@ -526,7 +526,7 @@ urlpatterns = [
 
 ---
 
-❗ If there are many errors and can't start sever: Delete all files in migrations folder (except for `__init__.py`) + run commands `rm db.sqlite3` + `python manage.py makemigrations` + `python manage.py migrate` - Remeber, you always must drop the database table too. And you'll have to create a super admin again: `python manage.py createsuperuser`.
+❗ If there are many errors and can't start sever: Delete all files in migrations folder (except for `__init__.py`) + run commands `rm db.sqlite3` + `python manage.py makemigrations` + `python manage.py migrate` - Remember, you always must drop the database table too. And you'll have to create a super admin again: `python manage.py createsuperuser`.
 
 ---
 
